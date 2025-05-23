@@ -1,1 +1,1 @@
-# from config import load_json
+from .read_config import GraphDataset

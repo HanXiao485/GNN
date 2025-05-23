@@ -21,7 +21,8 @@ class GNN(torch.nn.Module):
         # 全局平均池化聚合所有节点特征 [2,5](@ref)
         x = global_mean_pool(x, batch)  # 输出形状 [batch_size, output_dim]
         
-        # # 如果output_dim≠3，通过线性层调整维度 [2](@ref)
-        # x = self.fc(x)  
+        # 如果output_dim≠3，通过线性层调整维度 [2](@ref)
+        x = self.fc(x)  
 
-        return F.log_softmax(x, dim=1)
+        # return F.log_softmax(x, dim=1)
+        return x

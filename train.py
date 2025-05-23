@@ -25,7 +25,7 @@ train_losses = []
 
 # train loop
 model.train()
-for epoch in range(1000):
+for epoch in range(2000):
 
     epoch_loss = 0.0  # 记录当前epoch的总损失
     num_batches = 0   # 记录batch数量
@@ -34,8 +34,8 @@ for epoch in range(1000):
         optimizer.zero_grad()
         output = model(batch)
         loss = F.mse_loss(output, batch.y)  # 注意标签形状可能需要调整（见下方说明）
-        # print("output:" , output)
-        # print("batch.y:" , batch.y)
+        print("output:" , output)
+        print("batch.y:" , batch.y)
         loss.backward()
         optimizer.step()
 
@@ -49,7 +49,7 @@ for epoch in range(1000):
 
 
 
-# 训练完成后绘制损失曲线
+# loss  curve
 plt.figure(figsize=(10, 6))
 plt.plot(range(1, len(train_losses)+1), train_losses, 'b-', label='Training Loss')
 plt.title('Training Loss Curve', fontsize=14)

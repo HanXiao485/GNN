@@ -9,15 +9,16 @@ import matplotlib.pyplot as plt
 import torch
 import networkx as nx
 
-JSON_PATH = "node_features.json"
+# JSON_PATH = "node_features.json"
+JSON_PATH = "generated_data_v4.json"
 
 dataset = GraphDataset(JSON_PATH)  # 替换为你的 JSON 文件路径
-dataloader = GeoDataLoader(dataset, batch_size=1, shuffle=True)
+dataloader = GeoDataLoader(dataset, batch_size=8, shuffle=True, drop_last=True)
 
 num_nodes = len(dataloader)  # get number of nodes in the graph
 
 # model initialization
-model = GNN(input_dim=3, hidden_dim=16, output_dim=3)
+model = GNN(input_dim=255, hidden_dim=1, output_dim=255)
 optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
 
 # 初始化损失记录列表
@@ -25,7 +26,7 @@ train_losses = []
 
 # train loop
 model.train()
-for epoch in range(2000):
+for epoch in range(1000):
 
     epoch_loss = 0.0  # 记录当前epoch的总损失
     num_batches = 0   # 记录batch数量
@@ -34,8 +35,8 @@ for epoch in range(2000):
         optimizer.zero_grad()
         output = model(batch)
         loss = F.mse_loss(output, batch.y)  # 注意标签形状可能需要调整（见下方说明）
-        print("output:" , output)
-        print("batch.y:" , batch.y)
+        # print("output:" , output)
+        # print("batch.y:" , batch.y)
         loss.backward()
         optimizer.step()
 

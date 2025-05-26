@@ -1,5 +1,6 @@
 import json
 import torch
+import networkx as nx
 from torch.utils.data import DataLoader
 from torch_geometric.data import Data, Dataset
 
@@ -20,11 +21,7 @@ class GraphDataset(Dataset):
                 node_features.append(entry[key][0])  # 每个节点的第一个特征向量
             x = torch.tensor(node_features, dtype=torch.float32)  # 节点特征矩阵 (3, 3)
 
-            # 构造完全图 (3个节点的完全图有6条边)
-            edge_index = torch.tensor([
-                [0, 0, 1, 1, 2, 2],
-                [1, 2, 0, 2, 0, 1]
-            ], dtype=torch.long)  # 形状 (2, num_edges)
+            edge_index = generate_complete_edge_index(len(node_keys))
 
             # 标签向量（假设为数值向量）
             y = torch.tensor(entry[label_key][0], dtype=torch.float32)  # 标签向量 (1)
@@ -37,6 +34,19 @@ class GraphDataset(Dataset):
 
     def get(self, idx):
         return self.graphs[idx]
+
+
+def generate_complete_edge_index(n_nodes):
+    # 生成无向完全图
+    G = nx.complete_graph(n_nodes)
+    # 提取边并添加双向连接
+    edge_list = []
+    for u, v in G.edges():
+        edge_list.extend([[u, v], [v, u]])  # 添加双向边
+    # 转换为PyTorch张量
+    edge_index = torch.tensor(edge_list, dtype=torch.long).t().contiguous()
+    return edge_index
+
 
 # 使用示例
 if __name__ == "__main__":

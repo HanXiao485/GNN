@@ -18,13 +18,15 @@ class GraphDataset(Dataset):
 
             node_features = []
             for key in node_keys:
-                node_features.append(entry[key][0])  # 每个节点的第一个特征向量
+                node_features.append(entry[key])  # 每个节点的第一个特征向量
             x = torch.tensor(node_features, dtype=torch.float32)  # 节点特征矩阵 (3, 3)
+
+            x = x.view(x.shape[0], x.shape[1]*x.shape[2]) 
 
             edge_index = generate_complete_edge_index(len(node_keys))
 
             # 标签向量（假设为数值向量）
-            y = torch.tensor(entry[label_key][0], dtype=torch.float32)  # 标签向量 (1)
+            y = torch.tensor(entry[label_key], dtype=torch.float32)  # 标签向量 (1)
 
             data = Data(x=x, edge_index=edge_index, y=y)
             self.graphs.append(data)

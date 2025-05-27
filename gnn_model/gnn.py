@@ -24,5 +24,7 @@ class GNN(torch.nn.Module):
         # 如果output_dim≠3，通过线性层调整维度 [2](@ref)
         x = self.fc(x)  
 
+        x = x.view(-1) # 适配标签维度 铺平
+
         # return F.log_softmax(x, dim=1)
         return x

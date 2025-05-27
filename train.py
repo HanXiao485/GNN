@@ -50,7 +50,8 @@ for epoch in range(2000):
     train_losses.append(avg_epoch_loss)
     print(f"Epoch: {epoch}, Loss: {loss.item()}")
 
-
+print("output", output)
+print("labels", batch.y)
 
 # loss  curve
 plt.figure(figsize=(10, 6))

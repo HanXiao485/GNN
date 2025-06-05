@@ -30,6 +30,18 @@ train_size = int(0.8 * len(dataset))
 val_size = len(dataset) - train_size
 train_dataset, val_dataset = random_split(dataset, [train_size, val_size])
 
+# -------------------- 新增：预计算训练集标签的归一化参数 --------------------
+# 收集训练集所有标签（假设每个batch的y是二维张量，如[batch_size, output_dim]）
+train_labels = []
+for idx in train_dataset.indices:  # random_split的indices属性获取训练集索引
+    data = dataset[idx]
+    train_labels.append(data.y)
+train_labels = torch.cat(train_labels, dim=0)  # 合并为[total_train_samples, output_dim]
+
+# 初始化并拟合归一化器（假设TargetScaler是类似sklearn的标准化/归一化类）
+scaler = TargetScaler()
+scaler.fit(train_labels)  # 基于训练集全局标签计算均值、标准差等参数
+
 # 创建训练和验证的数据加载器
 train_loader = GeoDataLoader(train_dataset, batch_size=128, shuffle=True)
 val_loader = GeoDataLoader(val_dataset, batch_size=128, shuffle=False)  # 验证集不shuffle
@@ -54,7 +66,7 @@ for epoch in range(5000):
     for batch in train_loader:
         optimizer.zero_grad()
         output = model(batch.to(device))
-        y_normal, scaler = normalize(batch.y.cpu())
+        y_normal = scaler.transform(batch.y.cpu()).to(device)
         loss = F.mse_loss(output, y_normal.to(device))
         loss.backward()
         optimizer.step()
@@ -71,11 +83,15 @@ for epoch in range(5000):
     epoch_val_loss = 0.0
     num_val_batches = 0
 
-    with torch.no_grad():  # 禁用梯度计算节省内存
+    with torch.no_grad():
         for val_batch in val_loader:
-            output = model(val_batch.to(device))
-            val_batch.y = val_batch.y
-            val_loss = F.mse_loss(output, val_batch.y)
+            val_batch = val_batch.to(device)
+            output = model(val_batch)  # 模型输出：归一化后的值
+            
+            # 对验证标签进行归一化（使用相同的scaler）
+            val_y_normal = scaler.transform(val_batch.y.cpu()).to(device)  # 关键修改：验证标签归一化
+            
+            val_loss = F.mse_loss(output, val_y_normal)
             epoch_val_loss += val_loss.item()
             num_val_batches += 1
 
@@ -85,8 +101,8 @@ for epoch in range(5000):
     # 打印训练和验证损失（每50轮打印一次）
     if epoch % 50 == 0:
         print(f"Epoch {epoch}:")
-        print("output:", output[-5:-1])
-        print("labels: ", val_batch.y[-5:-1])
+        print("output:", scaler.inverse_transform(output)[-1])
+        print("labels: ", val_batch.y[-1])
         print(f"  Train Loss: {avg_train_loss:.6f}")
         print(f"  Val Loss:   {avg_val_loss:.6f}\n")
 

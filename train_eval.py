@@ -14,7 +14,7 @@ import networkx as nx
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(f"Using device: {device}")
 
-JSON_PATH = "datas/result.json"
+JSON_PATH = "/home/data/xiaohan/datasets/m2f-gnn/result.json"
 
 # 加载数据集并划分训练/验证集（8:2比例）
 dataset = GraphDataset(JSON_PATH)
@@ -28,7 +28,7 @@ val_loader = GeoDataLoader(val_dataset, batch_size=128, shuffle=False)  # 验证
 
 # model initialization
 # model = GNN(input_dim=371, hidden_dim=16, output_dim=3).to(device)
-model = DeepGCNWithResidual(input_dim=376, hidden_dim=32, output_dim=3).to(device)
+model = DeepGCNWithResidual(input_dim=376, hidden_dim=128, output_dim=3).to(device)
 optimizer = torch.optim.Adam(model.parameters(), lr=0.001, weight_decay=1e-5)
 
 # 初始化损失记录列表（训练+验证）
